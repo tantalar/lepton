@@ -20,6 +20,7 @@
 #define CCI_CMD_SYS_SET_TELEMETRY_ENABLE_STATE 0x0219
 #define CCI_CMD_SYS_GET_TELEMETRY_LOCATION 0x021C
 #define CCI_CMD_SYS_SET_TELEMETRY_LOCATION 0x021D
+#define CCI_CMD_SYS_GET_FFC_STATUS 0x0244
 
 #define CCI_CMD_RAD_GET_RADIOMETRY_ENABLE_STATE 0x4E10
 #define CCI_CMD_RAD_SET_RADIOMETRY_ENABLE_STATE 0x4E11
@@ -32,6 +33,11 @@
 #define CCI_CMD_AGC_SET_CALC_ENABLE_STATE 0x0149
 
 #define CCI_CMD_OEM_RUN_REBOOT 0x4842
+
+
+// Manipurate GPIO3 for VSYNC
+#define CCI_CMD_OEM_GET_GPIO_MODE 0x4854
+#define CCI_CMD_OEM_SET_GPIO_MODE 0x4855
 
 
 #define WAIT_FOR_BUSY_DEASSERT() cci_wait_busy_clear(fd);
@@ -64,6 +70,26 @@ typedef enum {
   CCI_AGC_ENABLED,
 } cci_agc_enable_state_t;
 
+
+/* FFC Status */
+typedef enum {
+  CCI_SYS_STATUS_WRITE_ERROR = -2,
+  CCI_SYS_STATUS_ERROR = -1,
+  CCI_SYS_STATUS_READY = 0,
+  CCI_SYS_STATUS_BUSY,
+  CC_SYS_FRAME_AVERAGE_COLLECTING_FRAMES,
+} cci_sys_status_e_t;
+
+/* GPIO Mode Select */
+typedef enum {
+  CCI_GPIO_MODE_GPIO,
+  CCI_GPIO_MODE_I2C_MASTER,
+  CCI_GPIO_MODE_SPI_MASTER_VLB_DATA,
+  CCI_GPIO_MODE_SPIO_MASTER_REG_DATA,
+  CCI_GPIO_MODE_SPI_SLAVE_VLB_DATA,
+  CCI_GPIO_MODE_VSYNC,
+} cci_gpio_mode_e_t;
+
 /* Setup */
 int cci_init(int fd);
 
@@ -79,6 +105,7 @@ void cci_set_telemetry_enable_state(int fd, cci_telemetry_enable_state_t state);
 uint32_t cci_get_telemetry_enable_state(int fd);
 void cci_set_telemetry_location(int fd, cci_telemetry_location_t location);
 uint32_t cci_get_telemetry_location(int fd);
+uint32_t cci_get_sys_ffc_status(int fd);
 
 /* Module: RAD */
 void cci_set_radiometry_enable_state(int fd, cci_radiometry_enable_state_t state);
@@ -94,5 +121,7 @@ uint32_t cci_get_agc_calc_enable_state(int fd);
 
 /* Module: OEM */
 void cc_run_oem_reboot(int fd);
+void cci_set_gpio_mode(int fd, cci_gpio_mode_e_t state);
+uint32_t cci_get_gpio_mode(int fd);
 
 #endif /* CCI_H */
