@@ -66,6 +66,10 @@ int init_lepton()
 
   // Initialize I2C interface
   cci_init(fd);
+
+  // enable VSYNC output
+  log_info("  Enable VSYNC output");
+  cci_set_gpio_mode(fd, CCI_GPIO_MODE_VSYNC);
   
   // Perform a FFC to (re)initialize the sensor
   /*
