@@ -18,6 +18,8 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
  * published by the Free Software Foundation.
+ *
+ * Added vsync input and reset output pins support.
 */
 /dts-v1/;
 /plugin/;
@@ -28,11 +30,13 @@
 	part-number = "PB-PRU-RPMSG-LEP-SPI";
 
 	/* version */
-	version = "00A0";
+	version = "00A1";
 
 	/* stat the resources this cape uses */
 	exclusive-use = 
 		/* the pin header uses */
+		"P2.30",	/* PRU0 RESET_L */
+		"P2.28",	/* PRU0 VSYNC */
 		"P2.24",	/* PRU0 SCLK */
 		"P2.34",	/* PRU0 MISO */
 		"P2.32",	/* PRU0 CS0 */
@@ -45,6 +49,8 @@
 			P1_35_pinmux { status = "disabled"; };
 			P1_36_pinmux { status = "disabled"; };
 			P2_24_pinmux { status = "disabled"; };
+			P2_28_pinmux { status = "disabled"; };
+			P2_30_pinmux { status = "disabled"; };
 			P2_32_pinmux { status = "disabled"; };
 			P2_34_pinmux { status = "disabled"; };
 		};
@@ -58,6 +64,13 @@
 					0x030 0x06	/* P2_24: pr1_pru0_pru_r30_14, OUTPUT_PULLDOWN | MODE6 */
 					0x1a4 0x26	/* P2_34: pr1_pru0_pru_r31_5, INPUT_PULLDOWN | MODE6 */
 					0x198 0x05	/* P2_32: pr1_pru0_pru_r30_2, OUTPUT_PULLDOWN | MODE5 */
+				>;
+			};
+
+			pru_extra_ctrl_pins: pru_extra_ctrl_pins {
+				pinctrl-single,pins = <
+					0x1a8 0x26	/* P2_28: pr1_pru0_pru_r31_6, INPUT_PULLDOWN | MODE6 */
+					0x19c 0x15	/* P2_30: pr1_pru0_pru_r31_3, OUTPUT_PULLUP | MODE5 */
 				>;
 			};
 
@@ -78,6 +91,13 @@
 				status = "okay";
 				pinctrl-names = "default";
 				pinctrl-0 = <&pru_spi_pins>;
+			};
+
+			pru_extra_ctrl_pinmux {
+				compatible = "bone-pinmux-helper";
+				status = "okay";
+				pinctrl-names = "default";
+				pinctrl-0 = <&pru_extra_ctrl_pins>;
 			};
 
 			pru_diag_led_pinmux {
