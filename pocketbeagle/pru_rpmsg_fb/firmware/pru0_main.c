@@ -48,6 +48,12 @@
  * Free Software Foundation; either version 2 of the License, or (at your
  * option) any later version.
  */
+/*
+ * Append VSYNC to detect start of new frame. (not required??)
+ * Append RESET_N to recover from resync pitfall.
+ * 	-- tantalar
+ */
+
 /* We are compiling for PRU0 */
 #define PRU0
 
@@ -78,6 +84,9 @@
 #define LEP_RESYNC_USEC 190000
 #define LEP_RESYNC_CYCLES (LEP_RESYNC_USEC * PRU_CLK_PER_USEC)
 
+/* Lepton reset time */
+#define LEP_RESET_CYCLES 5000
+
 
 /* -------------- */
 /* PRU IO related */
@@ -86,6 +95,8 @@
 #define MISO    5       //P2_34
 #define CSN     2       //P2_32
 #define LED     0       //P1_36
+#define	VSYNC	6	//P2_28
+#define RSTN	3	//P2_30	
 
 #define SET_PIN(bit,high)	if(high) __R30 |= (1 << (bit)); else __R30 &= ~(1 << (bit));
 #define INVERT_PIN(bit)		__R30 ^= (1 << (bit));
@@ -151,10 +162,17 @@ void init_pru()
 	/* Set CSN de-asserted and SCK high */
 	SET_PIN(CSN,1);
 	SET_PIN(CLK,1);
+	SET_PIN(RSTN,1);
+
+	/* Assert RESETN */
+	__delay_cycles(4);
+	SET_PIN(RSTN,0);
+	__delay_cycles(LEP_RESET_CYCLES);
+	SET_PIN(RSTN,1);
 
 	/* Slow blink the LED to let them know we've started */
 	SET_PIN(LED,1);
-	__delay_cycles(100000000);
+	//__delay_cycles(100000000);
 	SET_PIN(LED,0);
 }
 
@@ -324,7 +342,7 @@ void main()
 	while (1) {
 		/* Check our enable register */
 		if (*buf_en_reg_ptr == P0_ENABLE) {
-			if (run_state == RUN_STATE_STOPPED) {
+			if ((CHECK_PIN(VSYNC) == 1) || (run_state == RUN_STATE_STOPPED)) {
 				/* Start up */
 				run_state = RUN_STATE_DATA;
 				init_capture();
@@ -399,8 +417,11 @@ void main()
 					SET_PIN(CSN,1);
 					SET_PIN(LED,0);
 
+					SET_PIN(RSTN,0);
 					/* Delay to allow Lepton to resync */
-					__delay_cycles(LEP_RESYNC_CYCLES);
+					//__delay_cycles(LEP_RESYNC_CYCLES);
+					__delay_cycles(LEP_RESET_CYCLES);
+					SET_PIN(RSTN,1);
 
 					/* Reinitialize capture system */
 					init_capture();
