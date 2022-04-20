@@ -283,6 +283,31 @@ void cci_set_agc_calc_enable_state(int fd, cci_agc_enable_state_t state)
 }
 
 /*
+ * Get/Set GPIO3 mode to VSYNC.
+ */
+uint32_t cci_get_gpio_mode(int fd)
+{
+  WAIT_FOR_BUSY_DEASSERT()
+  cci_write_register(fd, CCI_REG_DATA_LENGTH, 2);
+  cci_write_register(fd, CCI_REG_COMMAND, CCI_CMD_OEM_GET_GPIO_MODE);
+  WAIT_FOR_BUSY_DEASSERT()
+  uint16_t ls_word = cci_read_register(fd, CCI_REG_DATA_0);
+  uint16_t ms_word = cci_read_register(fd, CCI_REG_DATA_0 + CCI_WORD_LENGTH);
+  return ms_word << 16 | ls_word;
+}
+
+void cci_set_gpio_mode(int fd, cci_gpio_mode_e_t state)
+{
+  uint32_t value = state;
+  WAIT_FOR_BUSY_DEASSERT()
+  cci_write_register(fd, CCI_REG_DATA_0, value & 0xffff);
+  cci_write_register(fd, CCI_REG_DATA_0 + CCI_WORD_LENGTH, value >> 16 & 0xffff);
+  cci_write_register(fd, CCI_REG_COMMAND, CCI_CMD_OEM_SET_GPIO_MODE);
+  cci_write_register(fd, CCI_REG_DATA_LENGTH, 2);
+  WAIT_FOR_BUSY_DEASSERT()
+}
+
+/*
  * Run the Reboot command
  */
 void cc_run_oem_reboot(int fd)
