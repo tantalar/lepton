@@ -15,6 +15,7 @@ char i2c_dev[] = "/dev/i2c-2";
 int main(int argc, char *argv[])
 {
   int fd;
+  uint32_t resp;
 
   // Open the I2C device
   log_info("opening I2C device ... %s", i2c_dev);
@@ -29,6 +30,21 @@ int main(int argc, char *argv[])
   // Reboot the Lepton in case it's in a funny state
   log_info("Starting reboot...");
   cc_run_oem_reboot(fd);
+  log_info("  Done");
+
+  // read GPIO value
+  log_info("Read GPIO3...");
+  resp = cci_get_gpio_mode(fd);
+  log_info("  GPIO3 value = %d", resp);
+  if (resp !=  5) {
+    // VSYNC not enabled. Write GPIO value
+    log_info("enabling VSYNC...");
+    cci_set_gpio_mode(fd, CCI_GPIO_MODE_VSYNC);
+  } else {
+    log_info("already enabled...");
+  }
+  resp = cci_get_gpio_mode(fd);
+  log_info("  GPIO3 value = %d", resp);
   log_info("  Done");
 
   // Close up
